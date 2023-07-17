@@ -1,0 +1,12 @@
+#if($input.path('$.status') == "SUCCEEDED")
+#set($output = $util.parseJson($input.path('$.output')))
+#set($context.responseOverride.status = $output.statusCode)
+$output.body
+#{else}
+#set($context.responseOverride.status = 500)
+  {
+    "statusCode": "500",
+    "message": "Something went wrong on our end.",
+    "raw": "$input.json('$')"
+  }
+#end

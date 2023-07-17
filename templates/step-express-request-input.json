@@ -1,0 +1,92 @@
+#set($multiValueHeaders = {})
+#foreach($header in $input.params().header.keySet())
+  $!multiValueHeaders.put($header, [$input.params().header.get($header)])
+#end
+#foreach($header in $input.params().multivalueheader.keySet())
+  $!multiValueHeaders.put($header, $input.params().multivalueheader.get($header))
+#end
+{
+  "resource": "$context.resourcePath",
+  "path": "$context.path",
+  "httpMethod": "$context.httpMethod",
+  "headers": {
+    #foreach($header in $input.params().header.keySet())
+    "$header": "$util.escapeJavaScript($input.params().header.get($header))"
+    #if($foreach.hasNext),#end
+    #end
+  },
+  "multiValueHeaders": {
+    #foreach($header in $multiValueHeaders.keySet())
+    "$header": [
+      #foreach($value in $multiValueHeaders.get($header))
+      "$util.escapeJavaScript($value)"
+      #if($foreach.hasNext),#end
+      #end
+    ]
+    #if($foreach.hasNext),#end
+    #end
+  },
+  "queryStringParameters": {
+    #foreach($queryParam in $input.params().querystring.keySet())
+    "$queryParam": "$util.escapeJavaScript($input.params().querystring.get($queryParam))"
+    #if($foreach.hasNext),#end
+    #end
+  },
+  "multiValueQueryStringParameters": {
+    #foreach($queryParam in $input.params().multivaluequerystring.keySet())
+    "$queryParam": [
+      #foreach($value in $input.params().multivaluequerystring.get($queryParam))
+      "$util.escapeJavaScript($value)"
+      #if($foreach.hasNext),#end
+      #end
+    ]
+    #if($foreach.hasNext),#end
+    #end
+  },
+  "requestContext": {
+    #foreach($paramName in $context.keySet())
+    "$paramName": "$util.escapeJavaScript($context.get($paramName))",
+    #end
+    "authorizer": {
+        #foreach($paramName in $context.authorizer.keySet())
+          "$paramName": "$util.escapeJavaScript($context.authorizer.get($paramName))",
+        #end
+        "principalId": "$util.escapeJavaScript($context.authorizer.principalId)",
+        "claims": {
+          #foreach($claimName in $context.authorizer.claims.keySet())
+          "$claimName": "$util.escapeJavaScript($context.authorizer.claims.get($claimName))"
+          #if($foreach.hasNext),#end
+          #end
+        }
+    },
+    "identity": {
+      #foreach($paramName in $context.identity.keySet())
+      "$paramName": "$util.escapeJavaScript($context.identity.get($paramName))",
+      #end
+      "clientCert": {
+        "clientCertPem": "$util.escapeJavaScript($context.identity.clientCert.clientCertPem)",
+        "subjectDN": "$util.escapeJavaScript($context.identity.clientCert.subjectDN)",
+        "issuerDN": "$util.escapeJavaScript($context.identity.clientCert.issuerDN)",
+        "serialNumber": "$util.escapeJavaScript($context.identity.clientCert.serialNumber)",
+        "validity": {
+            "notBefore": "$util.escapeJavaScript($context.identity.clientCert.validity.notBefore)",
+            "notAfter": "$util.escapeJavaScript($context.identity.clientCert.validity.notAfter)"
+        }
+      }
+    }
+  },
+  "pathParameters": {
+    #foreach($pathParam in $input.params().path.keySet())
+    "$pathParam": "$util.escapeJavaScript($input.params().path.get($pathParam))"
+    #if($foreach.hasNext),#end
+    #end
+  },
+  "stageVariables": {
+    #foreach($stageParam in $stageVariables.keySet())
+    "$stageParam": "$util.escapeJavaScript($stageVariables.get($stageParam))"
+    #if($foreach.hasNext),#end
+    #end
+  },
+  "body": $util.escapeJavaScript($input.json('$')),
+  "isBase64Encoded": false
+}
